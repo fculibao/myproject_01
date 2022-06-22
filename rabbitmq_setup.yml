@@ -1,0 +1,43 @@
+- name: Provisioning RabbitMQ Broker/Queuing Agent
+  hosts: rmq01
+  tasks:
+    - name: Import Variables
+      include_vars: vars/stack_setup_vars
+
+    - name: Update patches and Install Required packages for RABBITMQ Server.
+      shell: |
+        sudo yum install epel-release -y
+        sudo yum update -y
+        sudo yum install wget -y
+
+    - name: Download ERLANG packages
+      shell: |
+        cd /tmp/
+        wget http://packages.erlang-solutions.com/erlang-solutions-2.0-1.noarch.rpm
+        
+    - name: Installing ERLANG packages ..........    
+      shell: |
+        cd /tmp  
+        sudo rpm -Uvh erlang-solutions-2.0-1.noarch.rpm
+        sudo yum -y install erlang socat
+        curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | sudo bash
+        
+    - name: Installing RabbitMQ server
+      shell: |   
+        sudo yum install rabbitmq-server -y
+        
+    - name: Satrting and Enabling RabbitMQ server
+      shell: |    
+        sudo systemctl start rabbitmq-server
+        sudo systemctl enable rabbitmq-server
+        sudo systemctl status rabbitmq-server
+        
+    - name: Adding test user and set it as administrator ...........
+      shell: |
+        sudo sh -c 'echo "[{rabbit, [{loopback_users, []}]}]." > /etc/rabbitmq/rabbitmq.config'
+        sudo rabbitmqctl add_user test test
+        sudo rabbitmqctl set_user_tags test administrator
+
+    - name: Resatrting RabbitMQ server 
+      shell: |
+        sudo systemctl restart rabbitmq-server

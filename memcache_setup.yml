@@ -1,0 +1,20 @@
+- name: Provisioning Memcache Caching Server
+  hosts: mc01
+  tasks:
+    - name: Import Variables
+      include_vars: vars/stack_setup_vars
+
+    - name: Update patches and Install Required packages MEMCACHE Server
+      shell: |
+        sudo yum install epel-release -y
+        sudo yum install memcached -y
+
+    - name: Start and neable MEMCACHE service
+      shell: |
+        sudo systemctl start memcached
+        sudo systemctl enable memcached
+        sudo systemctl status memcached
+    
+    - name: Adding port 11211 and 11111
+      shell: |
+        sudo memcached -p 11211 -U 11111 -u memcached -d

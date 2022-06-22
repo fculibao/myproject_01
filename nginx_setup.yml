@@ -1,0 +1,55 @@
+- name: Provisioning NGINX Server
+  hosts: web01
+  gather_facts: False
+  tasks:
+    - name: Import Variables
+      include_vars: vars/stack_setup_vars
+
+    - name: Update patches and Install Required packages for NGINX Server
+      become: yes
+      become_user: root
+      shell: |
+        apt update
+        apt install nginx -y
+
+    - name: Creasting Home Page
+      become: yes
+      become_user: root 
+      shell: |
+        cd /etc/nginx/sites-available/   
+        cat <<EOF > vproapp
+        upstream vproapp {        
+
+         server app01:8080;        
+
+        }        
+
+        server {        
+
+          listen 80;        
+
+        location / {        
+
+          proxy_pass http://vproapp;        
+
+        }        
+
+        }        
+
+        EOF        
+    
+    - name: Creasting Home Page
+      become: yes
+      become_user: root
+      shell: |     
+        rm -rf /etc/nginx/sites-enabled/default
+        ln -s /etc/nginx/sites-available/vproapp /etc/nginx/sites-enabled/vproapp        
+        sudo sed -i 's/EOF//g' /etc/nginx/sites-enabled/vproapp
+    
+    - name: Start and Enable NGINX service
+      become: yes
+      become_user: root
+      shell: |           
+        systemctl start nginx
+        systemctl enable nginx
+        systemctl restart nginx

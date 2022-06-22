@@ -1,0 +1,17 @@
+- name: Provisioning Mysql Server
+  hosts: db01
+  tasks:
+    - name: Import Variables
+      include_vars: vars/stack_setup_vars
+      include_vars: scripts/mysql.sh
+    
+    - name: Copy script to the target host
+      ansible.builtin.copy:
+        src: /Documents/DevOpsVideoTut/DEVOPS_PROJECT/vprofile-project/vagrant/Manual_provisioning/scripts/mysql.sh
+        dest: /tmp/mysql.sh
+        owner: root
+        group: root
+        mode: '0744'
+
+    - name: Provision MysqlDB
+      ansible.builtin.shell: mysql.sh
